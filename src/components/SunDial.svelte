@@ -22,6 +22,29 @@
     $: moonX = MID - Math.sin(moonPos.azimuth) * moonLineLenght
     $: moonY = MID + Math.cos(moonPos.azimuth) * moonLineLenght
 
+    // ATTEMPT TO DRAW SUN PATH IN PLAN VIEW
+    const SECONDS_IN_DAY: number = 24 * 60 * 60 * 1000;
+    const STEPS = 100
+    const STEP_SIZE = 24.0 * 60 * 60 * 1000 / STEPS
+
+    function LINEsunPath(data: [number, number][]): string {
+        return 'M ' + data.map(d => {
+            const x = d[0] * SIZE;   
+            // const y = (Math.sin(-d[1])/2+0.5) * HEIGHT;
+            const y = d[1] * SIZE;
+            return `${x} ${y}`;
+        }).join(' L ');
+    }
+
+    //FROM: AltitudeDiagram.svelte
+    $: sunData = Array(STEPS).fill(0).map((_, i) => [
+        1.0 * i / STEPS, 
+        1.0 * i / STEPS
+        //SunCalc.getPosition(new Date(nadir + STEP_SIZE * i), pos.lat, pos.lon).altitude
+    ] as [number, number]);
+
+    /// END OF ATTEMPT
+
 </script>
 
 <svg width="{SIZE}" height="{SIZE}">
@@ -35,6 +58,8 @@
     <circle class="sunCircle" r="4" cx="{sunX}" cy="{sunY}" fill-opacity={sunOppacity} />
     <circle class="moonCircle" r="4" cx="{moonX}" cy="{moonY}" fill-opacity={moonOppacity}/>
     <circle class="center" r="6" cx="{MID}" cy="{MID}"/>
+
+    <path class="sun_path" d={LINEsunPath(sunData)} />
 </svg>
 
 <style lang="less">
@@ -91,6 +116,11 @@
         #hover.sunRiseSet,
         #hover.moonRiseSet {
             stroke-width: 4;
+        }
+
+        .sun_path {
+            stroke: rgba(125, 65, 65, 0.84);
+            stroke-width: 3;
         }
     }
 </style>
