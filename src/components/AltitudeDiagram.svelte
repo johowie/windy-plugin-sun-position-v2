@@ -12,6 +12,23 @@
         return 'M' + data.map(d => (d[0] * WIDTH) + "," + ((d[1]/ Math.PI + 0.5) * HEIGHT)).join('L');
     }
 
+    // same as original LINE function
+    function LINEazimuthGraph(data: [number, number][]): string {
+        return 'M ' + data.map(d => {
+            const x = d[0] * WIDTH;   
+            const y = (-d[1]/Math.PI+0.5) * HEIGHT;
+            return `${x} ${y}`;
+        }).join(' L ');
+    }
+
+    function LINEheightGraph(data: [number, number][]): string {
+        return 'M ' + data.map(d => {
+            const x = d[0] * WIDTH;   
+            const y = (Math.sin(-d[1])/2+0.5) * HEIGHT;
+            return `${x} ${y}`;
+        }).join(' L ');
+    }
+
 
     export var nadir: number;
     export var time: number;
@@ -20,21 +37,38 @@
     export var moonAltitude: number;
 
     $: markerXPos = (time - nadir) / SECONDS_IN_DAY * WIDTH
-    $: sunYPos = -(sunAltitude / Math.PI - 0.5) * HEIGHT
-    $: moonYPos = -(moonAltitude / Math.PI - 0.5) * HEIGHT
 
-    $: sunData = Array(STEPS).fill(0).map((_, i) => [1.0 * i / STEPS, -SunCalc.getPosition(new Date(nadir + STEP_SIZE * i), pos.lat, pos.lon).altitude] as [number, number])
-    $: moonData = Array(STEPS).fill(0).map((_, i) => [1.0 * i / STEPS, -SunCalc.getMoonPosition(new Date(nadir + STEP_SIZE * i), pos.lat, pos.lon).altitude] as [number, number])
+    $: sunYPosAzimuth = (-sunAltitude / Math.PI + 0.5) * HEIGHT
+    $: moonYPosAzimuth = (-moonAltitude / Math.PI + 0.5) * HEIGHT
 
+    $: sunYPosHeight = (1-Math.sin(sunAltitude))/2 * HEIGHT;
+    $: moonYPosHeight =(1-Math.sin(moonAltitude))/2 * HEIGHT;
+
+    // $: sunData = Array(STEPS).fill(0).map((_, i) => [1.0 * i / STEPS, -SunCalc.getPosition(new Date(nadir + STEP_SIZE * i), pos.lat, pos.lon).altitude] as [number, number])
+    // $: moonData = Array(STEPS).fill(0).map((_, i) => [1.0 * i / STEPS, -SunCalc.getMoonPosition(new Date(nadir + STEP_SIZE * i), pos.lat, pos.lon).altitude] as [number, number])
+
+    $: sunData = Array(STEPS).fill(0).map((_, i) => [
+        1.0 * i / STEPS, 
+        SunCalc.getPosition(new Date(nadir + STEP_SIZE * i), pos.lat, pos.lon).altitude
+    ] as [number, number]);
+
+    $: moonData = Array(STEPS).fill(0).map((_, i) => [
+        1.0 * i / STEPS, 
+        SunCalc.getMoonPosition(new Date(nadir + STEP_SIZE * i), pos.lat, pos.lon).altitude
+    ] as [number, number]);
 
 </script>
 
 <svg viewBox="0 0 {WIDTH} {HEIGHT}" class="sun-path">
-    <path id=sun_path d={LINE(sunData)} />
-    <path id=moon_path d={LINE(moonData)}  />
+    <path id=sun_pathH d={LINEheightGraph(sunData)} />
+    <path id=moon_pathH d={LINEheightGraph(moonData)}  />
+    <path id=sun_path d={LINEazimuthGraph(sunData)} />
+    <path id=moon_path d={LINEazimuthGraph(moonData)}  />
     <path id=horizon d="M 0 {HEIGHT/2} H {WIDTH}" />
-    <circle id=moon cx="{markerXPos}" cy="{moonYPos}" r="6"/>
-    <circle id=sun cx="{markerXPos}" cy="{sunYPos}" r="6"/>
+    <circle id=moonH cx="{markerXPos}" cy="{moonYPosHeight}" r="6"/>
+    <circle id=sunH cx="{markerXPos}" cy="{sunYPosHeight}" r="6"/>
+    <circle id=moon cx="{markerXPos}" cy="{moonYPosAzimuth}" r="3"/>
+    <circle id=sun cx="{markerXPos}" cy="{sunYPosAzimuth}" r="3"/>
 </svg>
 
 <style lang="less">
@@ -65,6 +99,12 @@
             fill: yellow;
         }
         #moon{
+            fill: gray;
+        }
+        #sunH{
+            fill: yellow;
+        }
+        #moonH{
             fill: gray;
         }
     }
