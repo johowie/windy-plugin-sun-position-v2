@@ -44,9 +44,6 @@
     $: sunYPosHeight = (1-Math.sin(sunAltitude))/2 * HEIGHT;
     $: moonYPosHeight =(1-Math.sin(moonAltitude))/2 * HEIGHT;
 
-    // $: sunData = Array(STEPS).fill(0).map((_, i) => [1.0 * i / STEPS, -SunCalc.getPosition(new Date(nadir + STEP_SIZE * i), pos.lat, pos.lon).altitude] as [number, number])
-    // $: moonData = Array(STEPS).fill(0).map((_, i) => [1.0 * i / STEPS, -SunCalc.getMoonPosition(new Date(nadir + STEP_SIZE * i), pos.lat, pos.lon).altitude] as [number, number])
-
     $: sunData = Array(STEPS).fill(0).map((_, i) => [
         1.0 * i / STEPS, 
         SunCalc.getPosition(new Date(nadir + STEP_SIZE * i), pos.lat, pos.lon).altitude
@@ -60,20 +57,23 @@
 </script>
 
 <svg viewBox="0 0 {WIDTH} {HEIGHT}" class="sun-path">
-    <path id=sun_pathH d={LINEheightGraph(sunData)} />
-    <path id=moon_pathH d={LINEheightGraph(moonData)}  />
+
     <path id=sun_path d={LINEazimuthGraph(sunData)} />
     <path id=moon_path d={LINEazimuthGraph(moonData)}  />
     <path id=horizon d="M 0 {HEIGHT/2} H {WIDTH}" />
-    <circle id=moonH cx="{markerXPos}" cy="{moonYPosHeight}" r="6"/>
-    <circle id=sunH cx="{markerXPos}" cy="{sunYPosHeight}" r="6"/>
     <circle id=moon cx="{markerXPos}" cy="{moonYPosAzimuth}" r="3"/>
     <circle id=sun cx="{markerXPos}" cy="{sunYPosAzimuth}" r="3"/>
+
+    <path id=sun_pathH d={LINEheightGraph(sunData)} />
+    <path id=moon_pathH d={LINEheightGraph(moonData)}  />
+    <circle id=moonH cx="{markerXPos}" cy="{moonYPosHeight}" r="6"/>
+    <circle id=sunH cx="{markerXPos}" cy="{sunYPosHeight}" r="6"/>
 </svg>
 
 <style lang="less">
     @sunDasharray: 10 2 1 2;
     @moonDasharray: 0 1 2 2 3 2 3 1;
+    @feintDashArray: 1 10;
 
     svg{
         width: 100%;
@@ -88,10 +88,18 @@
         }
 
         #sun_path {
-            stroke-dasharray: @sunDasharray;
+            stroke-dasharray: @feintDashArray;
         }
 
         #moon_path {
+            stroke-dasharray: @feintDashArray;
+        }
+
+        #sun_pathH {
+            stroke-dasharray: @sunDasharray;
+        }
+
+        #moon_pathH {
             stroke-dasharray: @moonDasharray;
         }
 
